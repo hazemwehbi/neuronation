@@ -1,0 +1,38 @@
+version: '3'
+services:
+  nginx:
+    build: docker/nginx
+    ports:
+      - "8182:80"
+    volumes:
+      - ./docker/nginx/logs/:/var/log/nginx
+      - ./project:/var/www/project
+  php:
+    build: docker/php
+    restart: always
+    volumes:
+      - ./project:/var/www/project
+  db:
+    image: mysql:8.0.12
+    container_name: db
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: neuronation
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+  composer:
+    image: composer:1.7.2
+    volumes:
+      - "./project/:/app"
+    command: install
